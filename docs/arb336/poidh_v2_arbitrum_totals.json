@@ -1,0 +1,61 @@
+{
+  "dataset": "poidh v2 (Arbitrum One) wallet-level ETH flows + NFT holdings",
+  "generated_at_utc": "2026-10-22T02:35:35Z",
+  "chain": "arbitrum-one",
+  "chainId": 42161,
+  "block_number": 517097828,
+  "contracts": {
+    "bounty_contract": "0x0aa50ce0d724cc28f8f7af4630c32377b4d5c27d",
+    "nft_contract": "0xddfb1a53e7b73dba09f79fca24765c593d447a80",
+    "multicall3": "0xcA11bde05977b3631167028862bE2a173976CA11",
+    "treasury": "0x1a706a29822921d6c641e472bd33cf945a13fef9"
+  },
+  "rows": 104,
+  "wallets_excluded_claim_only": 137,
+  "totals": {
+    "bounties_total": 180,
+    "bounties_completed": 112,
+    "bounties_open": 24,
+    "bounties_cancelled_refunded": 44,
+    "claims_total": 437,
+    "nfts_total_supply": 437,
+    "eth_paid_out": "0.318082790000000000",
+    "eth_earned_gross": "0.318082790000000000",
+    "eth_protocol_fee": "0.007952069750000000",
+    "eth_paid_out_net_of_fee": "0.310130720250000000",
+    "nft_count_total": 112,
+    "eth_paid_out_wei": "318082790000000000",
+    "eth_earned_gross_wei": "318082790000000000",
+    "eth_protocol_fee_wei": "7952069750000000"
+  },
+  "reconciliation": {
+    "paid_out_equals_earned_equals_completed_pot": true,
+    "sum_paid_out_wei": "318082790000000000",
+    "sum_earned_wei": "318082790000000000",
+    "sum_completed_bounty_amount_wei": "318082790000000000",
+    "sum_all_bounty_amount_wei": "585495730000000000",
+    "open_escrow_wei": "24858010000000000",
+    "cancelled_refund_wei": "242554930000000000",
+    "sum_parts_check": "all 180 bounty pots equal sum of on-chain participantAmounts (0 mismatches)",
+    "fee_identity": "fee = amount*25//1000 (2.5%); fee*40 == amount for all 112 completed bounties",
+    "nft_reconciliation": "112 NFTs held by wallets + 325 held by the bounty contract = totalSupply 437",
+    "contract_eth_balance_wei": "0",
+    "open_escrow_unbacked_wei": "24858010000000000",
+    "note": "Bounty contract ETH balance is 0 while 24 open bounties carry 0.02485801 ETH of unclaimed amount; a simulated withdrawFromOpenBounty() reverts transferFailed. Settled (completed) flows are unaffected: every acceptance in the contract code requires amount <= balance and pays amount-fee + fee atomically."
+  },
+  "methodology": {
+    "enumeration": "getBountiesLength() -> 180; bounties(i) for i in [0,180) via Multicall3.aggregate3 (30 calls/batch); getParticipants(i) and getClaimsByBountyId(i) likewise; ownerOf(tokenId) for every tokenId in [0, totalSupply) on the NFT contract. All reads are eth_call at one pinned block; no eth_getLogs, no indexer, no explorer.",
+    "completed_bounty": "claimer != 0x0 AND claimer != issuer AND the linked claim (bounties(i).claimId) has accepted == true and issuer == claimer.",
+    "refunds_excluded": "cancelSoloBounty/cancelOpenBounty set claimer = issuer; those 44 bounties (0.24255493 ETH) are excluded from paid_out/earned.",
+    "eth_paid_out": "Per completed bounty, the pot is attributed to its contributors: the participantAmounts[] split for open bounties (issuer is participant[0], withdrawn participants are zeroed on-chain), or the full amount to the issuer for solo bounties. Sum of contributions equals the pot for all 180 bounties.",
+    "eth_earned": "Gross amount paid to the accepted claimer = bounty.amount at settlement (the contract does not zero amount in _acceptClaim). Contract: fee = amount*25/1000, payout = amount - fee, both sent in the same tx. Gross == fee*40 exactly.",
+    "nft_count": "Current holdings, not mints: poidh v2 NFTs (tokenId == claimId) are minted to the bounty contract and transferred to the bounty issuer on acceptance; ownerOf() is read for all 437 tokens, so later transfers are reflected.",
+    "verification": "Re-run poidh_v2_arb_enumerate.py then poidh_v2_arb_build.py against any Arbitrum RPC."
+  },
+  "files": {
+    "wallet_csv": "work/poidh_v2_arbitrum.csv",
+    "bounty_csv": "work/poidh_v2_arbitrum_bounties.csv",
+    "totals_json": "work/poidh_v2_arbitrum_totals.json",
+    "raw_snapshot": "work/poidh_v2_arb_raw.json"
+  }
+}
